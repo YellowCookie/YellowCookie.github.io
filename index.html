@@ -1,20 +1,303 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="author" content="黄斌">
-        <title>Hellow World</title>
-        <style>
-            
-        </style>
-    </head>
-    <body>
-        你好 世界<br>
-        你好 亮亮<br>
-        你好 康康<br>
-        你好 超平<br>
-        你好 飞飞<br>
-        你好 源源<br>
-        你好 子为
-    </body>
+	<head>
+		<meta charset="UTF-8">
+		<script src="jquery-3.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<title>扫雷</title>
+		<style type="text/css">
+			p{
+				padding: 10px;
+				border: 1px solid black;
+				margin: 0px auto;
+				margin-top: 100px;
+				/*text-align: right;*/
+			}
+			
+			div{
+				padding: 10px;
+				border: 1px solid black;
+				margin: 0px auto;
+			}
+			button{
+				width: 30px;
+				height: 30px;
+				float: left;
+				text-align: center;
+				font-size: 10px;
+				line-height: 19px;
+				padding: 0;
+			}
+			p span{
+				display: inline-block;
+				width: 50px;
+				height: 25px;
+				line-height: 25px;
+				text-align: center;
+				background-color: #F1F1F1;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<p>
+			<span>初级</span>
+			<span>中级</span>
+			<span>高级</span>
+			
+			时间：<label></label>
+		</p>
+		<div>
+			
+		</div>
+		
+		<script type="text/javascript">
+			var width = 9;
+			var height = 9;
+			var buttonSize = 30;
+			var dilei = 10;
+			var arrays = [];//布雷 01数组  1代表有雷
+			var isClick = [];//是否被点击了 true表示被点击了
+			var isFlag = [];
+			var countOpen = 0;//翻开的button数
+			var lv = 0;//用来记录游戏级别
+			var time = 0;
+			var timer ;
+			
+			var cookies = document.cookie.split('; ');
+			var now = new Date();
+			now.setDate(now.getMinutes() + 7);
+			if(cookies.length <= 2){
+				document.cookie = 'diji=999;expires=' + now;
+				document.cookie = 'zhongji=999;expires=' + now;
+				document.cookie = 'gaoji=999;expires=' + now;
+			}
+			
+			create()
+			$('span').click(function(){
+				if($(this).index() == 0){
+					width = 9;
+					height = 9;
+					dilei = 10;
+					lv = 0;
+				}else if($(this).index() == 1){
+					width = 16;
+					height = 16;
+					dilei = 40;
+					lv = 1;
+				}else if($(this).index() == 2){
+					width = 30;
+					height = 16;
+					dilei = 99;
+					lv = 2;
+				}
+				
+				create();
+			})
+			
+			function create(){
+				clearInterval(timer);
+				time = 0;
+				$('div').html('');
+				$('div').css('width',width * buttonSize + 'px').css('height',height * buttonSize + 'px')
+				$('p').css('width',width * buttonSize + 'px')
+				for(var i = 0 ;i < height ;i++){
+					for(var j = 0;j < width ;j++){
+						$('<button>').appendTo($('div'))	
+					}
+				}
+				
+				var temp;
+				arrays.splice(0,arrays.length);
+				isClick.splice(0,isClick.length);
+				isFlag.splice(0,isFlag.length);
+				for(var i = 0 ;i < width * height ;i++){
+					if(i < dilei){
+						arrays.push(1);
+					}else{
+						arrays.push(0);
+					}	
+					isClick.push(false);
+					isFlag.push(false);
+				}
+				for(var i = 0;i < 10000;i++){
+					
+					var num = parseInt(Math.random() * width * height);
+					temp = arrays[0]; 
+					arrays[0] = arrays[num];
+					arrays[num] = temp;
+				}
+				
+				//给button添加点击事件
+				$('button').each(function(index,elem){
+					$(this).mousedown(function(event){
+						if(event.button == 3){
+							alert('111')
+						}
+					})
+					
+					$(this).mouseup(function(e){
+						
+						if(e.which == 1){
+							Open(index);	
+						}
+						else if(e.which == 3){
+							if(isFlag[index] == false){
+								$(this).html('旗')
+								isFlag[index] = true;
+							}else{
+								$(this).html('')
+								isFlag[index] = false;
+							}
+							
+						}
+					})	
+				})
+				
+				timer = setInterval(function(){
+					time ++ ;
+					$('label').html(time);
+				},1000)
+			}
+			//创建模板框
+			
+			
+			
+			
+			//获取周围button的index
+			function getAround(num){
+				if(num == 0){
+					return [num+1,num+width,num+width+1];
+				}
+				else if(num == width - 1){
+					return [num-1,num+width,num+width-1];
+				}
+				else if(num == width * height - 1){
+					return [num-1,num-width,num-width-1];
+				}
+				else if(num == width * (height - 1)){
+					return [num+1,num-width,num-width+1];
+				}
+				else if(num > 0 && num < width - 1){
+					return [num-1,num+width,num+width+1,num+1,num+width-1];
+				}	
+				else if(num > width * (height - 1) && num < width * height - 1){
+					return [num-1,num+1,num-width-1,num-width,num-width+1];
+				}
+				else if(num%width == 0){
+					return [num+1,num-width,num-width+1,num+width+1,num+width];
+				}
+				else if((num + 1)%width == 0){
+					return [num-1,num-width,num-width-1,num+width-1,num+width];
+				}
+				else{
+					return [num+1,num-1,num-width-1,num-width+1,num-width,num+width,num+width-1,num+width+1];
+				}
+			}
+			
+			//周围地雷数
+			function count(array){
+				var count = 0;
+				for(var i = 0;i < array.length;i++){
+					var t = array[i];
+					if(arrays[t] == 1){
+						count++;
+					}
+				}
+				return count;
+			}
+			
+			function Open(num){
+				if(isFlag[num] == false){
+					if(arrays[num] == 1){
+						$('button').eq(num).html('雷'); 
+						alert('你踩到地雷了');	
+						End();
+					}
+					else{
+						$('button').eq(num).attr("disabled",true)
+						isClick[num] = true;
+						countOpen++;
+						
+						if(count(getAround(num)) != 0){
+							$('button').eq(num).html(count(getAround(num))); 
+		
+						}else{
+							for(var i = 0;i < getAround(num).length;i++){
+								
+								if(isClick[getAround(num)[i]] == false){
+									Open(getAround(num)[i]); 
+									
+								}
+							}
+						}
+						if(countOpen == width * height - dilei){
+							var max = isMax(time);
+							alert('You Win   时间：' + time + '  最佳时间为：' + max);
+							End();
+						}
+						
+					}
+				}
+				
+			}
+			
+			function isMax(time){	
+				
+				if(lv == 0){
+					var arr = cookies[0].split('=');
+					if(time < Number(arr[1])){
+						document.cookie = 'diji=' + time + ';expires=' + now;
+						return time;
+					}else{
+						alert(time + ' ' + Number(arr[1]))
+						return arr[1]; 
+					}
+					
+				}
+				if(lv == 1){
+					var arr = cookies[1].split('=');
+					if(time < Number(arr[1])){
+						document.cookie = 'zhongji=' + time + ';expires=' + now;
+						return time;
+					}else{
+						return arr[1];
+					}
+				}
+				if(lv == 2){
+					var arr = cookies[2].split('=');
+					if(time < Number(arr[1])){
+						document.cookie = 'gaoji=' + time + ';expires=' + now;
+						return time;
+					}else{
+						return arr[1];
+					}
+				}
+	
+			}
+			
+			
+			function End(){
+				
+				countOpen = 0;
+				if(lv == 0){
+					width = 9;
+					height = 9;
+					dilei = 10;
+				}else if(lv == 1){
+					width = 16;
+					height = 16;
+					dilei = 40;
+				}else if(lv == 2){
+					width = 30;
+					height = 16;
+					dilei = 99;
+				}
+				create();
+			}
+			
+			$('div').contextmenu(function(e){
+				return false;
+			})
+		</script> 
+	</body>
 </html>
