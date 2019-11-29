@@ -1,2 +1,2 @@
 # YellowCookie.github.io
-黄斌的个人主页
+瞎整的扫雷
